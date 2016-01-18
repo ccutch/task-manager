@@ -1,3 +1,9 @@
+- id: 8b370959-c0ce-4edd-be07-4307b8896b95
+  owner: connor
+  title: Make simple implementation with yaml files for git repos
+  description: Simple proof of concept
+  tags: []
+  complete: true
 - id: 94aed283-f9c7-4740-8c72-8f9e8abb72ac
   owner: connor
   title: Add server support

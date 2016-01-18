@@ -56,10 +56,11 @@ func main() {
 								l := len(d)
 								w := 60
 
-								if l > w {
-									for i := w; i < l; i += w {
-										fmt.Println("\t" + d[i-w:i])
-									}
+								if l < w {
+									fmt.Println("\t" + d)
+								}
+								for i := w; i < l; i += w {
+									fmt.Println("\t" + d[i-w:i])
 								}
 								fmt.Println()
 							}
