@@ -10,14 +10,14 @@ GTM is a simple task manager writen completely in go. The purpose of this packag
    * `set` Set a config option, `user` or `server`. example: `gtm config set user "<your name>"`
    * `backup` Get a backup copy of your config. example: `gtm config backup > <your file name>.yml`
    
-**tasks** Run task commands
+**tasks** Run task commands such as list, add, claim, and mark complete
  - options:
    * `list, l` List all tasks for this project. example: `gtm tasks list`
    * `add, a` Add a new task to the list of tasks. example: `gtm tasks add "<Task Name>" --description="<Task Description>"`
    * `claim, c` Claim a task as something you are doing, uses your config user value. example `gtm tasks claim <project number from list>`
    * `mark, m` Mark a task as complete, must be a task that you have claimed. example `gtm tasks mark <project number from list>`
 
-**help**
+**help** Help, SOS, I need help :(
 
 ## Installation
 
