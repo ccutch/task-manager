@@ -1,9 +1,0 @@
-- id: 074094c4-6833-4ab7-9fae-7922273df26c
-  owner: ""
-  title: Add server support
-  description: Right new we are only saving to a local task.yml file. While this is
-    ok because we can leverage git to save and distribute the tasks we should also
-    add server support so that we can have the tasks independent from the rest of
-    the files that you are working in.
-  tags: []
-  complete: false

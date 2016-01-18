@@ -9,41 +9,27 @@ import (
 	"gopkg.in/yaml.v2"
 )
 
-var globalConfig struct {
+type Config struct {
 	User     string `yaml:"user"`
-	Server   string `yaml:"server"`
 	FileName string `yaml:"filename,omitempty"`
 }
 
-var ConfigComplete = false
+var GlobalConfig = &Config{FileName: ".tasks.yml"}
 
-func init() {
-	LoadLastConfig()
-}
-
-func SetUser(u string) {
-	globalConfig.User = u
-	fmt.Println("getting yaml", u, globalConfig.User, globalConfig.Server)
-	if globalConfig.Server != "" {
-		ConfigComplete = true
-	}
+// Set User for global config
+func (c *Config) SetUser(u string) {
+	GlobalConfig.User = u
 	SaveConfig()
 }
 
-func SetServer(s string) {
-	globalConfig.Server = s
-	if globalConfig.User != "" {
-		ConfigComplete = true
-	}
-	SaveConfig()
-}
-
+// Return a yaml representation of the global config
 func GetConfigYaml() string {
-	d, _ := yaml.Marshal(globalConfig)
+	d, _ := yaml.Marshal(GlobalConfig)
 	return string(d)
 }
 
-func UserHomeDir() string {
+// Get user home directory to save config file
+func userHomeDir() string {
 	if runtime.GOOS == "windows" {
 		home := os.Getenv("HOMEDRIVE") + os.Getenv("HOMEPATH")
 		if home == "" {
@@ -54,26 +40,24 @@ func UserHomeDir() string {
 	return os.Getenv("HOME")
 }
 
+// Load global config
 func LoadLastConfig() {
-	fn := UserHomeDir() + "/.taskmanager.config"
-	d, err := ioutil.ReadFile(fn)
-	if err != nil {
-		fmt.Println("Error loading config", err.Error())
-	}
-	yaml.Unmarshal(d, &globalConfig)
-	if globalConfig.Server != "" && globalConfig.User != "" {
-		ConfigComplete = true
-	}
-	if globalConfig.FileName == "" {
-		globalConfig.FileName = ".tasks.yml"
-	}
+	fn := userHomeDir() + "/.gtmrc"
+	d, _ := ioutil.ReadFile(fn)
+	yaml.Unmarshal(d, &GlobalConfig)
 }
 
+// Save global config
 func SaveConfig() {
 	c := GetConfigYaml()
-	fn := UserHomeDir() + "/.taskmanager.config"
+	fn := userHomeDir() + "/.gtmrc"
 	err := ioutil.WriteFile(fn, []byte(c), 0777)
 	if err != nil {
 		fmt.Println("Error saving config", err.Error())
 	}
+}
+
+// init, called when package is imported
+func init() {
+	LoadLastConfig()
 }

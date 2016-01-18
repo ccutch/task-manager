@@ -1,10 +1,8 @@
 package gtm
 
 import (
-	"bytes"
-	"encoding/json"
 	"errors"
-	"net/http"
+	"fmt"
 
 	"github.com/satori/go.uuid"
 )
@@ -22,10 +20,8 @@ type Task struct {
 	Saved    bool     `yaml:"-"`
 }
 
+// Create a new task
 func NewTask(title, description string) (*Task, error) {
-	if ConfigComplete {
-		return nil, errors.New("Config not complete, set user name and server to connect to.")
-	}
 	t := &Task{
 		Id: uuid.NewV4().String(),
 
@@ -36,38 +32,40 @@ func NewTask(title, description string) (*Task, error) {
 	return t, nil
 }
 
+// Mark task as complete, this can only be done if the tasks Owner field
+// to the global config user field
 func (t *Task) MarkComplete() error {
-	if t.Owner != globalConfig.User {
+	if t.Owner != GlobalConfig.User {
 		return errors.New("This is not you task.")
 	}
 	t.Complete = true
-	return t.SaveToServer()
+	return SaveTasks()
 }
 
+// Claim task as your task, TODO: check for conflicts
 func (t *Task) ClaimTask() error {
-	t.Owner = globalConfig.User
-	return t.SaveToServer()
+	if GlobalConfig.User == "" {
+		return errors.New("No user is set us gtm config set user <your name>.")
+	}
+	t.Owner = GlobalConfig.User
+	return SaveTasks()
 }
 
-func (t *Task) SaveToServer() error {
-	if !ConfigComplete {
-		return nil
+func (t *Task) String() string {
+	complete := "√"
+	if !t.Complete {
+		complete = "X"
 	}
-	b, err := json.Marshal(t)
-	if err != nil {
-		return err
+	s := fmt.Sprintf("Task <%s> - %s [owner: %s] %s\n", t.Id[:8], t.Title, t.Owner, complete)
+	d := t.Description
+	l := len(d)
+	w := 60
+
+	if l < w {
+		s += "\t" + d
 	}
-	resp, err := http.Post(globalConfig.Server, "application/json", bytes.NewReader(b))
-	if err != nil {
-		return err
+	for i := w; i < l; i += w {
+		s += "\t" + d[i-w:i] + "\n"
 	}
-	defer resp.Body.Close()
-	if resp.StatusCode != http.StatusOK {
-		buf := new(bytes.Buffer)
-		buf.ReadFrom(resp.Body)
-		s := buf.String()
-		return errors.New("Saving failed, [status " + resp.Status + "] " + s)
-	}
-	t.Saved = true
-	return nil
+	return s + "\n"
 }

@@ -1,6 +1,7 @@
 package gtm
 
 import (
+	"errors"
 	"io/ioutil"
 
 	"gopkg.in/yaml.v2"
@@ -20,17 +21,33 @@ func AddTask(t *Task) {
 	SaveTasks()
 }
 
-func LoadTasks() {
-	fn := globalConfig.FileName
-	d, _ := ioutil.ReadFile(fn)
-	yaml.Unmarshal(d, &Tasks)
-	if globalConfig.Server != "" && globalConfig.User != "" {
-		ConfigComplete = true
+func RemoveTask(id string) error {
+	for i, t := range Tasks {
+		if t.Id == id {
+			Tasks = append(Tasks[:i], Tasks[i+1:]...)
+			SaveTasks()
+			return nil
+		}
 	}
+	return errors.New("Task not found")
 }
 
-func SaveTasks() {
-	d, _ := yaml.Marshal(Tasks)
-	fn := globalConfig.FileName
-	ioutil.WriteFile(fn, d, 0777)
+func LoadTasks() error {
+	fn := GlobalConfig.FileName
+	d, err := ioutil.ReadFile(fn)
+	if err != nil {
+		return err
+	}
+	err = yaml.Unmarshal(d, &Tasks)
+	return err
+}
+
+func SaveTasks() error {
+	d, err := yaml.Marshal(Tasks)
+	if err != nil {
+		return err
+	}
+	fn := GlobalConfig.FileName
+	err = ioutil.WriteFile(fn, d, 0777)
+	return err
 }

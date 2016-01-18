@@ -3,7 +3,6 @@ package main
 import (
 	"fmt"
 	"os"
-	"strconv"
 
 	"github.com/ccutch/task-manager"
 	"github.com/codegangsta/cli"
@@ -11,7 +10,7 @@ import (
 
 func main() {
 	app := cli.NewApp()
-	app.Name = "Task Manager"
+	app.Name = "GTM"
 	app.Usage = "Easy and quick task management"
 	app.Version = "1.0.0"
 
@@ -46,23 +45,8 @@ func main() {
 						if len(gtm.Tasks) == 0 {
 							fmt.Println("No tasks to list out.")
 						} else {
-							for i, t := range gtm.Tasks {
-								complete := "√"
-								if !t.Complete {
-									complete = "X"
-								}
-								fmt.Printf("Task %d - %s [owner: %s] %s\n", i+1, t.Title, t.Owner, complete)
-								d := t.Description
-								l := len(d)
-								w := 60
-
-								if l < w {
-									fmt.Println("\t" + d)
-								}
-								for i := w; i < l; i += w {
-									fmt.Println("\t" + d[i-w:i])
-								}
-								fmt.Println()
+							for _, t := range gtm.Tasks {
+								fmt.Println(t)
 							}
 						}
 					},
@@ -72,13 +56,20 @@ func main() {
 					Aliases: []string{"c"},
 					Usage:   "Claim a Task",
 					Action: func(c *cli.Context) {
-						i, _ := strconv.Atoi(c.Args().First())
-						err := gtm.Tasks[i-1].ClaimTask()
-						if err != nil {
-							fmt.Println(err.Error())
-							return
+						id := c.Args().First()
+						for i, t := range gtm.Tasks {
+							if t.Id[:8] == id {
+								err := gtm.Tasks[i].ClaimTask()
+								if err != nil {
+									fmt.Println(err.Error())
+									return
+								}
+								fmt.Println(gtm.Tasks[i])
+								gtm.SaveTasks()
+								return
+							}
 						}
-						gtm.SaveTasks()
+						fmt.Println("Task not found for given id")
 					},
 				},
 				{
@@ -86,13 +77,20 @@ func main() {
 					Aliases: []string{"m"},
 					Usage:   "Mark task as complete",
 					Action: func(c *cli.Context) {
-						i, _ := strconv.Atoi(c.Args().First())
-						err := gtm.Tasks[i-1].MarkComplete()
-						if err != nil {
-							fmt.Println(err.Error())
-							return
+						id := c.Args().First()
+						for i, t := range gtm.Tasks {
+							if t.Id[:8] == id {
+								err := gtm.Tasks[i].MarkComplete()
+								if err != nil {
+									fmt.Println(err.Error())
+									return
+								}
+								fmt.Println(gtm.Tasks[i])
+								gtm.SaveTasks()
+								return
+							}
 						}
-						gtm.SaveTasks()
+						fmt.Println("Task not found for given id")
 					},
 				},
 				{
@@ -103,6 +101,7 @@ func main() {
 						t := c.Args().First()
 						d := c.String("description")
 						ts, _ := gtm.NewTask(t, d)
+						fmt.Println(ts)
 						if ts != nil {
 							gtm.AddTask(ts)
 						}
@@ -112,6 +111,23 @@ func main() {
 							Name:  "description",
 							Usage: "Description of a task",
 						},
+					},
+				},
+				{
+					Name:    "remove",
+					Aliases: []string{"r"},
+					Usage:   "Remove a new task",
+					Action: func(c *cli.Context) {
+						id := c.Args().First()
+						for _, t := range gtm.Tasks {
+							if t.Id[:8] == id {
+								gtm.RemoveTask(t.Id)
+								fmt.Println(t)
+								gtm.SaveTasks()
+								return
+							}
+						}
+						fmt.Println("Task not found for given id")
 					},
 				},
 			},
@@ -126,9 +142,7 @@ func setConfig(c *cli.Context) {
 	v := c.Args().Get(1)
 	switch f {
 	case "user":
-		gtm.SetUser(v)
-	case "server":
-		gtm.SetServer(v)
+		gtm.GlobalConfig.SetUser(v)
 	default:
 		fmt.Println("Error unrecognised field entered to set, options are \"user\" and \"server\".")
 	}
