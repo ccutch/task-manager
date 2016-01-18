@@ -29,7 +29,7 @@ func main() {
 					Name:  "backup",
 					Usage: "Get backup copy of config",
 					Action: func(c *cli.Context) {
-						fmt.Println(taskmanager.GetConfigYaml())
+						fmt.Println(gtm.GetConfigYaml())
 					},
 				},
 			},
@@ -43,10 +43,10 @@ func main() {
 					Aliases: []string{"l"},
 					Usage:   "List data type",
 					Action: func(c *cli.Context) {
-						if len(taskmanager.Tasks) == 0 {
+						if len(gtm.Tasks) == 0 {
 							fmt.Println("No tasks to list out.")
 						} else {
-							for i, t := range taskmanager.Tasks {
+							for i, t := range gtm.Tasks {
 								complete := "√"
 								if !t.Complete {
 									complete = "X"
@@ -73,12 +73,12 @@ func main() {
 					Usage:   "Claim a Task",
 					Action: func(c *cli.Context) {
 						i, _ := strconv.Atoi(c.Args().First())
-						err := taskmanager.Tasks[i-1].ClaimTask()
+						err := gtm.Tasks[i-1].ClaimTask()
 						if err != nil {
 							fmt.Println(err.Error())
 							return
 						}
-						taskmanager.SaveTasks()
+						gtm.SaveTasks()
 					},
 				},
 				{
@@ -87,12 +87,12 @@ func main() {
 					Usage:   "Mark task as complete",
 					Action: func(c *cli.Context) {
 						i, _ := strconv.Atoi(c.Args().First())
-						err := taskmanager.Tasks[i-1].MarkComplete()
+						err := gtm.Tasks[i-1].MarkComplete()
 						if err != nil {
 							fmt.Println(err.Error())
 							return
 						}
-						taskmanager.SaveTasks()
+						gtm.SaveTasks()
 					},
 				},
 				{
@@ -102,9 +102,9 @@ func main() {
 					Action: func(c *cli.Context) {
 						t := c.Args().First()
 						d := c.String("description")
-						ts, _ := taskmanager.NewTask(t, d)
+						ts, _ := gtm.NewTask(t, d)
 						if ts != nil {
-							taskmanager.AddTask(ts)
+							gtm.AddTask(ts)
 						}
 					},
 					Flags: []cli.Flag{
@@ -126,9 +126,9 @@ func setConfig(c *cli.Context) {
 	v := c.Args().Get(1)
 	switch f {
 	case "user":
-		taskmanager.SetUser(v)
+		gtm.SetUser(v)
 	case "server":
-		taskmanager.SetServer(v)
+		gtm.SetServer(v)
 	default:
 		fmt.Println("Error unrecognised field entered to set, options are \"user\" and \"server\".")
 	}
